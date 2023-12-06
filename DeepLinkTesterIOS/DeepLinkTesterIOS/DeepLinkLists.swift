@@ -12,6 +12,11 @@ struct DeepLinkLists: View {
     @State private var tipedLink: String = ""
     @State private var isError = false
     @State private var otherError = false
+    var linkOpener: LinkOpenerProtocol
+    
+    init(linkOpener: LinkOpenerProtocol = CoreLinkOpenerFactory.getLinkOpener()) {
+        self.linkOpener = linkOpener
+    }
     
     var body: some View {
         VStack {
@@ -19,9 +24,14 @@ struct DeepLinkLists: View {
                 ForEach(links, id: \.self) { link in
                     HStack{
                         Button(link.absoluteString) {
-                            UIApplication.shared.open(link, completionHandler: {
-                                isError = !$0
-                            })
+                            do {
+                                try linkOpener.open(link: link, completionHandler: {
+                                    isError = !$0
+                                })
+                            } catch {
+                                isError = true
+                            }
+
                         }
                         .padding()
                     }
